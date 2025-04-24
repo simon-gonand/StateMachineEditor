@@ -4,6 +4,7 @@
 #include "AssetDefinition_StateMachine.h"
 
 #include "StateMachine.h"
+#include "StateMachineEditorApp.h"
 
 #define LOCTEXT_NAMESPACE "AssetDefinition"
 
@@ -30,7 +31,12 @@ TConstArrayView<FAssetCategoryPath> UAssetDefinition_StateMachine::GetAssetCateg
 
 EAssetCommandResult UAssetDefinition_StateMachine::OpenAssets(const FAssetOpenArgs& OpenArgs) const
 {
-	return Super::OpenAssets(OpenArgs);
+	for (UStateMachine* StateMachine : OpenArgs.LoadObjects<UStateMachine>())
+	{
+		TSharedRef< FStateMachineEditorApp > NewStateMachineEditor( new FStateMachineEditorApp() );
+		NewStateMachineEditor->InitEditor(OpenArgs.GetToolkitMode(), OpenArgs.ToolkitHost, StateMachine);
+	}
+	return EAssetCommandResult::Handled;
 }
 
 EAssetCommandResult UAssetDefinition_StateMachine::PerformAssetDiff(const FAssetDiffArgs& DiffArgs) const

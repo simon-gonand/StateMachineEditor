@@ -26,6 +26,8 @@ public class StateMachineEditor : ModuleRules
 			new string[]
 			{
 				"Core", 
+				"Kismet",
+				"UnrealEd",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -39,8 +41,7 @@ public class StateMachineEditor : ModuleRules
 				"Slate",
 				"SlateCore", 
 				"StateMachineRuntime",
-				"AssetDefinition",
-				"UnrealEd",
+				"AssetDefinition"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
