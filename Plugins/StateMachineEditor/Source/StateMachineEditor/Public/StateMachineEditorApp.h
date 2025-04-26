@@ -18,4 +18,13 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override { return TEXT("StateMachineEditor"); }
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FColor(29,182,229); }
 	// End FAssetEditorToolkit interface
+
+	void RestoreStateMachine();
+
+private:
+	TSharedPtr<FDocumentTracker> DocumentManager;
+
+	UEdGraph* GraphEditor;
+
+	TSharedRef<SGraphEditor> CreateGraphEditorWidget(UEdGraph* InGraph);
 };

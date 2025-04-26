@@ -2,7 +2,7 @@
 
 #include "StateMachineEditorApp.h"
 
-const FName FStateMachineEditorTabs::GraphEditorID = FName("StateMachineGraph");
+const FName FStateMachineEditorTabs::GraphEditorID = FName("Document");
 
 FSMGraphEditorSummoner::FSMGraphEditorSummoner(TSharedPtr<FStateMachineEditorApp>  InStateMachineEditorPtr, FOnCreateGraphEditorWidget OnCreateGraphEditorWidgetCallback)
 	: FDocumentTabFactoryForObjects<UEdGraph>(FStateMachineEditorTabs::GraphEditorID, InStateMachineEditorPtr),
@@ -19,7 +19,7 @@ TAttribute<FText> FSMGraphEditorSummoner::ConstructTabNameForObject(UEdGraph* Do
 TSharedRef<SWidget> FSMGraphEditorSummoner::CreateTabBodyForObject(const FWorkflowTabSpawnInfo& Info,
 	UEdGraph* DocumentID) const
 {
-	return OnCreateGraphEditorWidget.Execute(Info.TabInfo.ToSharedRef(), DocumentID);
+	return OnCreateGraphEditorWidget.Execute(DocumentID);
 }
 
 const FSlateBrush* FSMGraphEditorSummoner::GetTabIconForObject(const FWorkflowTabSpawnInfo& Info,

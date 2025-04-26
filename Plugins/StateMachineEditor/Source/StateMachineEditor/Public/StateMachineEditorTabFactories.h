@@ -13,7 +13,7 @@ struct FStateMachineEditorTabs
 struct FSMGraphEditorSummoner : public FDocumentTabFactoryForObjects<UEdGraph>
 {
 public:
-	DECLARE_DELEGATE_RetVal_TwoParams(TSharedRef<SGraphEditor>, FOnCreateGraphEditorWidget, TSharedRef<FTabInfo>, UEdGraph*);
+	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<SGraphEditor>, FOnCreateGraphEditorWidget, UEdGraph*);
 	
 	FSMGraphEditorSummoner(TSharedPtr<class FStateMachineEditorApp> InStateMachineEditorPtr, FOnCreateGraphEditorWidget OnCreateGraphEditorWidgetCallback);
 
