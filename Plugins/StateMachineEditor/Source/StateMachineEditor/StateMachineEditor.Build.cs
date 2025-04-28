@@ -41,7 +41,8 @@ public class StateMachineEditor : ModuleRules
 				"Slate",
 				"SlateCore", 
 				"StateMachineRuntime",
-				"AssetDefinition"
+				"AssetDefinition",
+				"GraphEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -4,6 +4,9 @@
 
 #include "Modules/ModuleManager.h"
 
+struct FStateMachinePinFactory;
+struct FStateMachineNodeFactory;
+
 class FStateMachineEditorModule : public IModuleInterface
 {
 public:
@@ -11,4 +14,8 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+private:
+	TSharedPtr<FStateMachineNodeFactory> StateMachineGraphNodeFactory;
+	TSharedPtr<FStateMachinePinFactory> StateMachineGraphPinFactory;
 };

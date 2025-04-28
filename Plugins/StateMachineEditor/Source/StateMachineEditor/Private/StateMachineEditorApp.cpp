@@ -2,6 +2,7 @@
 
 #include "StateMachineEditorMode.h"
 #include "StateMachineEditorTabFactories.h"
+#include "StateMachineGraphSchema.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "StateMachineEditorApp"
@@ -20,7 +21,8 @@ void FStateMachineEditorApp::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 void FStateMachineEditorApp::InitEditor(const EToolkitMode::Type Mode,
 	const TSharedPtr<class IToolkitHost>& InitToolkitHost, UStateMachine* Object)
 {
-	GraphEditor = FBlueprintEditorUtils::CreateNewGraph(Object, FName("StateMachineGraph"), UEdGraph::StaticClass(), UEdGraphSchema::StaticClass());
+	GraphEditor = FBlueprintEditorUtils::CreateNewGraph(Object, FName("StateMachineGraph"), UEdGraph::StaticClass(), UStateMachineGraphSchema::StaticClass());
+	GraphEditor->GetSchema()->CreateDefaultNodesForGraph(*GraphEditor);
 	
 	TSharedPtr<FStateMachineEditorApp> ThisPtr(SharedThis(this));
 	if(!DocumentManager.IsValid())
