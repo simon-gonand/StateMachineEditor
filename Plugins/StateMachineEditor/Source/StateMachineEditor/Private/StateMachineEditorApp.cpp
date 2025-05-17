@@ -1,5 +1,6 @@
 #include "StateMachineEditorApp.h"
 
+#include "StateMachineEditor.h"
 #include "StateMachineEditorMode.h"
 #include "StateMachineEditorTabFactories.h"
 #include "StateMachineGraphSchema.h"
@@ -21,8 +22,23 @@ void FStateMachineEditorApp::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 void FStateMachineEditorApp::InitEditor(const EToolkitMode::Type Mode,
 	const TSharedPtr<class IToolkitHost>& InitToolkitHost, UStateMachine* Object)
 {
-	GraphEditor = FBlueprintEditorUtils::CreateNewGraph(Object, FName("StateMachineGraph"), UEdGraph::StaticClass(), UStateMachineGraphSchema::StaticClass());
-	GraphEditor->GetSchema()->CreateDefaultNodesForGraph(*GraphEditor);
+	if (!Object)
+	{
+		UE_LOG(LogStateMachineEditor, Error, TEXT("StateMachineEditorApp::InitEditor: Object is null"));
+		return;
+	}
+
+	if (Object->GetSourceGraph())
+	{
+		GraphEditor = Object->GetSourceGraph();
+	}
+	else
+	{
+		GraphEditor = FBlueprintEditorUtils::CreateNewGraph(Object, FName("StateMachineGraph"), UEdGraph::StaticClass(), UStateMachineGraphSchema::StaticClass());
+		GraphEditor->GetSchema()->CreateDefaultNodesForGraph(*GraphEditor);
+		Object->SetSourceGraph(GraphEditor);
+	}
+
 	
 	TSharedPtr<FStateMachineEditorApp> ThisPtr(SharedThis(this));
 	if(!DocumentManager.IsValid())

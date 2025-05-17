@@ -13,4 +13,8 @@ UCLASS(Blueprintable)
 class STATEMACHINERUNTIME_API UStateMachineTask : public UStateMachineNode
 {
 	GENERATED_BODY()
+
+private:
+	UPROPERTY()
+	TArray<UStateMachineTask*> LinkedTasks;
 };
