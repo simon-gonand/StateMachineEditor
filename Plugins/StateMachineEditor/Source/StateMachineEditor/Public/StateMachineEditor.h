@@ -7,6 +7,8 @@
 struct FStateMachinePinFactory;
 struct FStateMachineNodeFactory;
 
+DECLARE_LOG_CATEGORY_CLASS(LogStateMachineEditor, Log, All);
+
 class FStateMachineEditorModule : public IModuleInterface
 {
 public:

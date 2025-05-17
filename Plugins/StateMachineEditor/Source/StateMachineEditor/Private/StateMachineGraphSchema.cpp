@@ -3,13 +3,17 @@
 
 #include "StateMachineGraphSchema.h"
 
-#include "GraphNodes/StateMachineEntryNode.h"
+#include "BlueprintActionDatabase.h"
+#include "GraphNodes/StateMachineEntryEdGraphNode.h"
+#include "GraphNodes/StateMachineTaskEdGraphNode.h"
 #include "GraphNodes/Slate/GraphNodeStateMachineEntry.h"
 #include "KismetPins/SGraphPinExec.h"
+#include "Nodes/StateMachineNode.h"
+#include "Nodes/Tasks/StateMachineTask.h"
 
 TSharedPtr<class SGraphNode> FStateMachineNodeFactory::CreateNode(class UEdGraphNode* Node) const
 {
-	if (UStateMachineEntryNode* EntryNode = Cast<UStateMachineEntryNode>(Node))
+	if (UStateMachineEntryEdGraphNode* EntryNode = Cast<UStateMachineEntryEdGraphNode>(Node))
 	{
 		return SNew(SGraphNodeStateMachineEntry, EntryNode); 
 	}
@@ -31,8 +35,8 @@ TSharedPtr<class SGraphPin> FStateMachinePinFactory::CreatePin(class UEdGraphPin
 
 void UStateMachineGraphSchema::CreateDefaultNodesForGraph(UEdGraph& Graph) const
 {
-	FGraphNodeCreator<UStateMachineEntryNode> NodeCreator(Graph);
-	UStateMachineEntryNode* EntryNode = NodeCreator.CreateNode();
+	FGraphNodeCreator<UStateMachineEntryEdGraphNode> NodeCreator(Graph);
+	UStateMachineEntryEdGraphNode* EntryNode = NodeCreator.CreateNode();
 	NodeCreator.Finalize();
 
 	SetNodeMetaData(EntryNode, FNodeMetadata::DefaultGraphNode);
@@ -40,5 +44,65 @@ void UStateMachineGraphSchema::CreateDefaultNodesForGraph(UEdGraph& Graph) const
 
 void UStateMachineGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
-	Super::GetGraphContextActions(ContextMenuBuilder);
+	FGraphNodeClassHelper& NodeClassHelper = GetClassCache();
+	AddNodeOption(TEXT("Tasks"), ContextMenuBuilder, UStateMachineTask::StaticClass(), UStateMachineTaskEdGraphNode::StaticClass());
+}
+
+const FPinConnectionResponse UStateMachineGraphSchema::CanCreateConnection(const UEdGraphPin* A,
+	const UEdGraphPin* B) const
+{
+	if ((A->Direction != EGPD_Output || B->Direction != EGPD_Input) &&
+			(A->Direction != EGPD_Input && B->Direction != EGPD_Output))
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Needs to connect an Output to an Input"));
+	return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT("Pin Connection"));
+}
+
+TSharedPtr<FGraphNodeClassHelper> ClassCache;
+
+FGraphNodeClassHelper& UStateMachineGraphSchema::GetClassCache() const
+{
+	if (!ClassCache.IsValid())
+	{
+		ClassCache = MakeShareable(new FGraphNodeClassHelper(UStateMachineNode::StaticClass()));
+		FGraphNodeClassHelper::AddObservedBlueprintClasses(UStateMachineTask::StaticClass());
+		ClassCache->UpdateAvailableBlueprintClasses();
+	}
+
+	return *ClassCache.Get();
+}
+
+void UStateMachineGraphSchema::AddNodeOption(const FString& CategoryName, FGraphContextMenuBuilder& ContextMenuBuilder,
+	TSubclassOf<class UStateMachineNode> RuntimeNode, TSubclassOf<class UStateMachineEdGraphNode> EditorNode) const
+{
+	FCategorizedGraphActionListBuilder ListBuilder(CategoryName);
+	
+	TArray<FGraphNodeClassData> ClassData;
+	GetClassCache().GatherClasses(RuntimeNode, ClassData);
+
+	for (FGraphNodeClassData& NodeClassData : ClassData)
+	{
+		bool bIsAllowed = false;
+		if (!NodeClassData.GetPackageName().IsEmpty())
+		{
+			bIsAllowed = FBlueprintActionDatabase::IsClassAllowed(FTopLevelAssetPath(FName(NodeClassData.GetPackageName()), FName(NodeClassData.GetClassName())), FBlueprintActionDatabase::EPermissionsContext::Node);
+		}
+		else
+		{
+			bIsAllowed = FBlueprintActionDatabase::IsClassAllowed(NodeClassData.GetClass(), FBlueprintActionDatabase::EPermissionsContext::Node);
+		}
+
+		if (!bIsAllowed)
+			continue;
+
+		const FText NodeTypeName = FText::FromString(FName::NameToDisplayString(NodeClassData.ToString(), false));
+		TSharedPtr<FEdGraphSchemaAction_NewNode> NewNodeAction = MakeShareable(
+			new FEdGraphSchemaAction_NewNode(NodeClassData.GetCategory(), NodeTypeName, FText::GetEmpty(), 0));
+		ListBuilder.AddAction(NewNodeAction);
+
+		UStateMachineEdGraphNode* TaskNode = NewObject<UStateMachineEdGraphNode>(ContextMenuBuilder.OwnerOfTemporaries, EditorNode);
+		TaskNode->ClassData = NodeClassData;
+		NewNodeAction->NodeTemplate = TaskNode;
+	}
+
+	ContextMenuBuilder.Append(ListBuilder);
 }

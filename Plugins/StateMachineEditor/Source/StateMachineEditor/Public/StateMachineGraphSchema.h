@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIGraphTypes.h"
 #include "EdGraphUtilities.h"
 #include "EdGraph/EdGraphSchema.h"
 #include "StateMachineGraphSchema.generated.h"
@@ -32,4 +33,13 @@ public:
 	virtual void CreateDefaultNodesForGraph(UEdGraph& Graph) const override;
 	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
 	// End UEdGraphSchema Interface
+
+protected:
+	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
+
+private:
+	FGraphNodeClassHelper& GetClassCache() const;
+
+	void AddNodeOption(const FString& CategoryName, FGraphContextMenuBuilder& ContextMenuBuilder,
+		TSubclassOf<class UStateMachineNode> RuntimeNode, TSubclassOf<class UStateMachineEdGraphNode> EditorNode) const;
 };

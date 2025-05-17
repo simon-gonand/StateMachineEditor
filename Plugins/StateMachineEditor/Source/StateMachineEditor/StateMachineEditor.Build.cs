@@ -27,7 +27,8 @@ public class StateMachineEditor : ModuleRules
 			{
 				"Core", 
 				"Kismet",
-				"UnrealEd",
+				"UnrealEd", 
+				"AIGraph",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -42,7 +43,8 @@ public class StateMachineEditor : ModuleRules
 				"SlateCore", 
 				"StateMachineRuntime",
 				"AssetDefinition",
-				"GraphEditor"
+				"GraphEditor",
+				"BlueprintGraph",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

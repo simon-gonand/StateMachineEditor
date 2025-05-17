@@ -1,9 +1,9 @@
 #include "GraphNodes/Slate/GraphNodeStateMachineEntry.h"
 
 #include "SGraphPin.h"
-#include "GraphNodes/StateMachineEntryNode.h"
+#include "GraphNodes/StateMachineEntryEdGraphNode.h"
 
-void SGraphNodeStateMachineEntry::Construct(const FArguments& InArgs, UStateMachineEntryNode* InNode)
+void SGraphNodeStateMachineEntry::Construct(const FArguments& InArgs, UStateMachineEntryEdGraphNode* InNode)
 {
 	this->GraphNode = InNode;
 

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EdGraph/EdGraphNode.h"
-#include "StateMachineEntryNode.generated.h"
+#include "StateMachineEdGraphNode.h"
+#include "StateMachineEntryEdGraphNode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class STATEMACHINEEDITOR_API UStateMachineEntryNode : public UEdGraphNode
+class STATEMACHINEEDITOR_API UStateMachineEntryEdGraphNode : public UStateMachineEdGraphNode
 {
 	GENERATED_BODY()
 
