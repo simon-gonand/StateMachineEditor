@@ -45,6 +45,7 @@ public class StateMachineEditor : ModuleRules
 				"AssetDefinition",
 				"GraphEditor",
 				"BlueprintGraph",
+				"ToolMenus"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

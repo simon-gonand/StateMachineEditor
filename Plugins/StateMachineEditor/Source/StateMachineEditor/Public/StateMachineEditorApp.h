@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "BlueprintEditor.h"
 #include "StateMachine.h"
+#include "Framework/Commands/GenericCommands.h"
 
 class FStateMachineEditorApp : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
@@ -26,5 +27,14 @@ private:
 
 	UEdGraph* GraphEditor;
 
+	TSharedPtr<FUICommandList> GraphEditorCommands;
+
+	TSharedPtr<SGraphEditor> StateMachineGraphEditor;
+
+	void CreateCommandList();
 	TSharedRef<SGraphEditor> CreateGraphEditorWidget(UEdGraph* InGraph);
+	
+	// Graph Editor Commands Action
+	bool CanDeleteSelectedNodes();
+	void DeleteSelectedNodes();
 };

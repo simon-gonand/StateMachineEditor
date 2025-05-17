@@ -4,12 +4,16 @@
 #include "StateMachineGraphSchema.h"
 
 #include "BlueprintActionDatabase.h"
+#include "Framework/Commands/GenericCommands.h"
 #include "GraphNodes/StateMachineEntryEdGraphNode.h"
 #include "GraphNodes/StateMachineTaskEdGraphNode.h"
 #include "GraphNodes/Slate/GraphNodeStateMachineEntry.h"
 #include "KismetPins/SGraphPinExec.h"
 #include "Nodes/StateMachineNode.h"
 #include "Nodes/Tasks/StateMachineTask.h"
+
+
+#define LOCTEXT_NAMESPACE "FStateMachineGraphSchema"
 
 TSharedPtr<class SGraphNode> FStateMachineNodeFactory::CreateNode(class UEdGraphNode* Node) const
 {
@@ -48,8 +52,24 @@ void UStateMachineGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& 
 	AddNodeOption(TEXT("Tasks"), ContextMenuBuilder, UStateMachineTask::StaticClass(), UStateMachineTaskEdGraphNode::StaticClass());
 }
 
+void UStateMachineGraphSchema::GetContextMenuActions(class UToolMenu* Menu,
+	UGraphNodeContextMenuContext* Context) const
+{
+	if (Context->Node)
+	{
+		{
+			FToolMenuSection& Section = Menu->AddSection("StateMachineGraphSchemaNodeActions", LOCTEXT("StateMachineGraphActionsMenuHeader", "Node Actions"));
+			Section.AddMenuEntry(FGenericCommands::Get().Delete);
+			Section.AddMenuEntry(FGenericCommands::Get().Cut);
+			Section.AddMenuEntry(FGenericCommands::Get().Copy);
+			Section.AddMenuEntry(FGenericCommands::Get().Duplicate);
+		}
+	}
+	Super::GetContextMenuActions(Menu, Context);
+}
+
 const FPinConnectionResponse UStateMachineGraphSchema::CanCreateConnection(const UEdGraphPin* A,
-	const UEdGraphPin* B) const
+                                                                           const UEdGraphPin* B) const
 {
 	if ((A->Direction != EGPD_Output || B->Direction != EGPD_Input) &&
 			(A->Direction != EGPD_Input && B->Direction != EGPD_Output))

@@ -16,4 +16,6 @@ class STATEMACHINEEDITOR_API UStateMachineTaskEdGraphNode : public UStateMachine
 
 protected:
 	virtual void AllocateDefaultPins() override;
+
+	virtual void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 };

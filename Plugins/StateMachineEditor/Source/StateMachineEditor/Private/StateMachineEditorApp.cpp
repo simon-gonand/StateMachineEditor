@@ -74,8 +74,22 @@ void FStateMachineEditorApp::RestoreStateMachine()
 	TSharedPtr<SDockTab> DocumentTab = DocumentManager->OpenDocument(Payload, FDocumentTracker::OpenNewDocument);
 }
 
+void FStateMachineEditorApp::CreateCommandList()
+{
+	if (GraphEditorCommands.IsValid())
+		return;
+
+	GraphEditorCommands = MakeShareable(new FUICommandList());
+
+	GraphEditorCommands->MapAction(FGenericCommands::Get().Delete,
+		FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::DeleteSelectedNodes),
+		FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanDeleteSelectedNodes));
+}
+
 TSharedRef<SGraphEditor> FStateMachineEditorApp::CreateGraphEditorWidget(UEdGraph* InGraph)
 {
+	CreateCommandList();
+	
 	check(InGraph != nullptr);
 
 	// Create the title bar widget
@@ -98,11 +112,56 @@ TSharedRef<SGraphEditor> FStateMachineEditorApp::CreateGraphEditorWidget(UEdGrap
 	FGraphAppearanceInfo AppearanceInfo;
 	AppearanceInfo.CornerText = FText::FromString("State Machine");
 	
-	return SNew(SGraphEditor)
-		//.AdditionalCommands(GraphEditorCommands)
+	return SAssignNew(StateMachineGraphEditor, SGraphEditor)
+		.AdditionalCommands(GraphEditorCommands)
 		//.IsEditable(this, &FBehaviorTreeEditor::InEditingMode, bGraphIsEditable)
 		.Appearance(AppearanceInfo)
 		.TitleBar(TitleBarWidget)
 		.GraphToEdit(InGraph)
 		.AutoExpandActionMenu(true);
+}
+
+bool FStateMachineEditorApp::CanDeleteSelectedNodes()
+{
+	if (!StateMachineGraphEditor.IsValid())
+	{
+		return false;
+	}
+
+	const FGraphPanelSelectionSet SelectedNodes = StateMachineGraphEditor->GetSelectedNodes();
+	for (FGraphPanelSelectionSet::TConstIterator SelectedIter(SelectedNodes); SelectedIter; ++SelectedIter)
+	{
+		UEdGraphNode* Node = Cast<UEdGraphNode>(*SelectedIter);
+		if (Node && Node->CanUserDeleteNode())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void FStateMachineEditorApp::DeleteSelectedNodes()
+{
+	if (!StateMachineGraphEditor.IsValid())
+	{
+		return;
+	}
+
+	const FScopedTransaction Transaction(FGenericCommands::Get().Delete->GetDescription());
+	StateMachineGraphEditor->GetCurrentGraph()->Modify();
+
+	const FGraphPanelSelectionSet SelectedNodes = StateMachineGraphEditor->GetSelectedNodes();
+	StateMachineGraphEditor->ClearSelectionSet();
+
+	for (FGraphPanelSelectionSet::TConstIterator NodeIt(SelectedNodes); NodeIt; ++NodeIt)
+	{
+		if (UEdGraphNode* Node = Cast<UEdGraphNode>(*NodeIt))
+		{
+			if (Node->CanUserDeleteNode())
+			{
+				Node->Modify();
+				Node->DestroyNode();
+			}
+		}
+	}
 }

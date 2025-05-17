@@ -10,3 +10,9 @@ void UStateMachineTaskEdGraphNode::AllocateDefaultPins()
 	UEdGraphPin* Input = CreatePin(EGPD_Input, UStateMachineGraphSchema::PC_Exec, TEXT("In"));
 	UEdGraphPin* Output = CreatePin(EGPD_Output, UStateMachineGraphSchema::PC_Exec, TEXT("Out"));
 }
+
+void UStateMachineTaskEdGraphNode::GetNodeContextMenuActions(class UToolMenu* Menu,
+	class UGraphNodeContextMenuContext* Context) const
+{
+	Super::GetNodeContextMenuActions(Menu, Context);
+}

@@ -9,3 +9,8 @@ void UStateMachineEntryEdGraphNode::AllocateDefaultPins()
 {
 	UEdGraphPin* Outputs = CreatePin(EGPD_Output, UStateMachineGraphSchema::PC_Exec, TEXT("Entry"));
 }
+
+bool UStateMachineEntryEdGraphNode::CanUserDeleteNode() const
+{
+	return false;
+}

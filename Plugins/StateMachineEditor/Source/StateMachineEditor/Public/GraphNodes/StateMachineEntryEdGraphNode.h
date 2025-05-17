@@ -16,4 +16,7 @@ class STATEMACHINEEDITOR_API UStateMachineEntryEdGraphNode : public UStateMachin
 
 public:
 	virtual void AllocateDefaultPins() override;
+
+protected:
+	virtual bool CanUserDeleteNode() const override;
 };
