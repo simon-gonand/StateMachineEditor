@@ -37,4 +37,8 @@ private:
 	// Graph Editor Commands Action
 	bool CanDeleteSelectedNodes();
 	void DeleteSelectedNodes();
+	bool CanCopySelectedNodes();
+	void CopySelectedNodes();
+	bool CanPasteNodes();
+	void PasteNodes();
 };

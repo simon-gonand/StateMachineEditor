@@ -26,6 +26,7 @@ public class StateMachineEditor : ModuleRules
 			new string[]
 			{
 				"Core", 
+				"ApplicationCore",
 				"Kismet",
 				"UnrealEd", 
 				"AIGraph",
