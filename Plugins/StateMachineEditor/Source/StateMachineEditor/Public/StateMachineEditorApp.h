@@ -41,4 +41,8 @@ private:
 	void CopySelectedNodes();
 	bool CanPasteNodes();
 	void PasteNodes();
+	void DuplicateNodes();
+	bool CanCutNodes();
+	void CutNodes();
+	void DeleteDuplicatableNodes();
 };

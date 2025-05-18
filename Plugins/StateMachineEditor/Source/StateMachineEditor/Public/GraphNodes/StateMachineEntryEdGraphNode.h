@@ -19,4 +19,5 @@ public:
 
 protected:
 	virtual bool CanUserDeleteNode() const override;
+	virtual bool CanDuplicateNode() const override;
 };

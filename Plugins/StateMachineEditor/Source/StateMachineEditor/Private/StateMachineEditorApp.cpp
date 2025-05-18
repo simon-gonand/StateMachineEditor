@@ -94,6 +94,14 @@ void FStateMachineEditorApp::CreateCommandList()
 	GraphEditorCommands->MapAction(FGenericCommands::Get().Paste,
     		FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::PasteNodes),
     		FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanPasteNodes));
+
+	GraphEditorCommands->MapAction(FGenericCommands::Get().Duplicate,
+			FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::DuplicateNodes),
+			FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanCopySelectedNodes));
+
+	GraphEditorCommands->MapAction(FGenericCommands::Get().Cut,
+			FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CutNodes),
+			FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanCutNodes));
 }
 
 TSharedRef<SGraphEditor> FStateMachineEditorApp::CreateGraphEditorWidget(UEdGraph* InGraph)
@@ -322,5 +330,43 @@ void FStateMachineEditorApp::PasteNodes()
 	{
 		GraphOwner->PostEditChange();
 		GraphOwner->MarkPackageDirty();
+	}
+}
+
+void FStateMachineEditorApp::DuplicateNodes()
+{
+	CopySelectedNodes();
+	PasteNodes();
+}
+
+bool FStateMachineEditorApp::CanCutNodes()
+{
+	return CanCopySelectedNodes() && CanDeleteSelectedNodes();
+}
+
+void FStateMachineEditorApp::CutNodes()
+{
+	CopySelectedNodes();
+	DeleteDuplicatableNodes();
+}
+
+void FStateMachineEditorApp::DeleteDuplicatableNodes()
+{
+	if (!StateMachineGraphEditor.IsValid())
+	{
+		return;
+	}
+
+	const FScopedTransaction Transaction(FGenericCommands::Get().Duplicate->GetDescription());
+	FGraphPanelSelectionSet SelectedNodes = StateMachineGraphEditor->GetSelectedNodes();
+
+	for (FGraphPanelSelectionSet::TIterator SelectedIter(SelectedNodes); SelectedIter; ++SelectedIter)
+	{
+		UStateMachineEdGraphNode* SelectedNode = Cast<UStateMachineEdGraphNode>(*SelectedIter);
+		if (!SelectedNode || !SelectedNode->CanDuplicateNode() || !SelectedNode->CanUserDeleteNode())
+			continue;
+
+		SelectedNode->Modify();
+		SelectedNode->DestroyNode();
 	}
 }

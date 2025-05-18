@@ -14,3 +14,8 @@ bool UStateMachineEntryEdGraphNode::CanUserDeleteNode() const
 {
 	return false;
 }
+
+bool UStateMachineEntryEdGraphNode::CanDuplicateNode() const
+{
+	return false;
+}
