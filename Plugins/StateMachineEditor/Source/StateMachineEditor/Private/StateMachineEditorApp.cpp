@@ -5,6 +5,7 @@
 #include "StateMachineEditorTabFactories.h"
 #include "StateMachineGraphSchema.h"
 #include "GraphNodes/StateMachineEdGraphNode.h"
+#include "GraphNodes/StateMachineEntryEdGraphNode.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "HAL/PlatformApplicationMisc.h"
 
@@ -102,6 +103,10 @@ void FStateMachineEditorApp::CreateCommandList()
 	GraphEditorCommands->MapAction(FGenericCommands::Get().Cut,
 			FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CutNodes),
 			FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanCutNodes));
+
+	GraphEditorCommands->MapAction(FGenericCommands::Get().SelectAll,
+	FExecuteAction::CreateRaw(this, &FStateMachineEditorApp::SelectAllNodes),
+		FCanExecuteAction::CreateRaw(this, &FStateMachineEditorApp::CanSelectAllNodes));
 }
 
 TSharedRef<SGraphEditor> FStateMachineEditorApp::CreateGraphEditorWidget(UEdGraph* InGraph)
@@ -368,5 +373,30 @@ void FStateMachineEditorApp::DeleteDuplicatableNodes()
 
 		SelectedNode->Modify();
 		SelectedNode->DestroyNode();
+	}
+}
+
+bool FStateMachineEditorApp::CanSelectAllNodes()
+{
+	return true;
+}
+
+void FStateMachineEditorApp::SelectAllNodes()
+{
+	if (!StateMachineGraphEditor.IsValid())
+	{
+		return;
+	}
+	
+	StateMachineGraphEditor->SelectAllNodes();
+	FGraphPanelSelectionSet SelectedNodes = StateMachineGraphEditor->GetSelectedNodes();
+
+	for (FGraphPanelSelectionSet::TIterator SelectedIter(SelectedNodes); SelectedIter; ++SelectedIter)
+	{
+		if (UStateMachineEntryEdGraphNode* Entry = Cast<UStateMachineEntryEdGraphNode>(*SelectedIter))
+		{
+			StateMachineGraphEditor->SetNodeSelection(Entry, false);
+			return;
+		}
 	}
 }

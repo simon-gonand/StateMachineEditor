@@ -45,4 +45,6 @@ private:
 	bool CanCutNodes();
 	void CutNodes();
 	void DeleteDuplicatableNodes();
+	bool CanSelectAllNodes();
+	void SelectAllNodes();
 };
