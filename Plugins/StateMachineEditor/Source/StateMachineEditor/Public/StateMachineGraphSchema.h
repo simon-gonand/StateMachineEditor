@@ -18,6 +18,11 @@ struct STATEMACHINEEDITOR_API FStateMachinePinFactory : public FGraphPanelPinFac
 	virtual TSharedPtr<class SGraphPin> CreatePin(class UEdGraphPin* Pin) const override;
 };
 
+struct STATEMACHINEEDITOR_API FStateMachinePinConnectionFactory : public FGraphPanelPinConnectionFactory
+{
+	virtual class FConnectionDrawingPolicy* CreateConnectionPolicy(const class UEdGraphSchema* Schema, int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor, const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements, class UEdGraph* InGraphObj) const override;
+};
+
 /**
  * 
  */
@@ -37,6 +42,9 @@ public:
 
 protected:
 	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
+	virtual bool CreateAutomaticConversionNodeAndConnections(UEdGraphPin* A, UEdGraphPin* B) const override;
+
+	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 
 private:
 	FGraphNodeClassHelper& GetClassCache() const;

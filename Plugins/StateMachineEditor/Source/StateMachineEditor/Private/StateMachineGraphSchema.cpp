@@ -4,10 +4,14 @@
 #include "StateMachineGraphSchema.h"
 
 #include "BlueprintActionDatabase.h"
+#include "StateMachinesConnectionDrawingPolicy.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "GraphNodes/StateMachineEntryEdGraphNode.h"
 #include "GraphNodes/StateMachineTaskEdGraphNode.h"
+#include "GraphNodes/StateMachineTransitionEdGraphNode.h"
 #include "GraphNodes/Slate/GraphNodeStateMachineEntry.h"
+#include "GraphNodes/Slate/GraphNodeStateMachineTask.h"
+#include "GraphNodes/Slate/GraphNodeStateMachineTransition.h"
 #include "KismetPins/SGraphPinExec.h"
 #include "Nodes/StateMachineNode.h"
 #include "Nodes/Tasks/StateMachineTask.h"
@@ -21,6 +25,14 @@ TSharedPtr<class SGraphNode> FStateMachineNodeFactory::CreateNode(class UEdGraph
 	{
 		return SNew(SGraphNodeStateMachineEntry, EntryNode); 
 	}
+	if (UStateMachineTaskEdGraphNode* TaskNode = Cast<UStateMachineTaskEdGraphNode>(Node))
+	{
+		return SNew(SGraphNodeStateMachineTask, TaskNode);
+	}
+	if (UStateMachineTransitionEdGraphNode* TransitionNode = Cast<UStateMachineTransitionEdGraphNode>(Node))
+	{
+		return SNew(SGraphNodeStateMachineTransition, TransitionNode);
+	}
 	return FGraphPanelNodeFactory::CreateNode(Node);
 }
 
@@ -32,6 +44,19 @@ TSharedPtr<class SGraphPin> FStateMachinePinFactory::CreatePin(class UEdGraphPin
 	{
 		if (Pin->PinType.PinCategory == UStateMachineGraphSchema::PC_Exec)
 			return SNew(SGraphPinExec, Pin);
+	}
+
+	return nullptr;
+}
+
+class FConnectionDrawingPolicy* FStateMachinePinConnectionFactory::CreateConnectionPolicy(
+	const class UEdGraphSchema* Schema, int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor,
+	const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements,
+	class UEdGraph* InGraphObj) const
+{
+	if (Schema->IsA(UStateMachineGraphSchema::StaticClass()))
+	{
+		return new FStateMachinesConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, ZoomFactor, InClippingRect, InDrawElements);
 	}
 
 	return nullptr;
@@ -71,10 +96,51 @@ void UStateMachineGraphSchema::GetContextMenuActions(class UToolMenu* Menu,
 const FPinConnectionResponse UStateMachineGraphSchema::CanCreateConnection(const UEdGraphPin* A,
                                                                            const UEdGraphPin* B) const
 {
+	if (A->GetOwningNode() == B->GetOwningNode())
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Can't connect two pins from the same node"));
+	
 	if ((A->Direction != EGPD_Output || B->Direction != EGPD_Input) &&
-			(A->Direction != EGPD_Input && B->Direction != EGPD_Output))
+			(A->Direction != EGPD_Input || B->Direction != EGPD_Output))
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Needs to connect an Output to an Input"));
+
+	if (A->GetOwningNode()->IsA(UStateMachineTaskEdGraphNode::StaticClass()) &&
+		B->GetOwningNode()->IsA(UStateMachineTaskEdGraphNode::StaticClass()))
+		return FPinConnectionResponse(CONNECT_RESPONSE_MAKE_WITH_CONVERSION_NODE, TEXT("Transition Connection"));
+	
 	return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT("Pin Connection"));
+}
+
+bool UStateMachineGraphSchema::CreateAutomaticConversionNodeAndConnections(UEdGraphPin* A, UEdGraphPin* B) const
+{
+	UStateMachineTaskEdGraphNode* NodeA = Cast<UStateMachineTaskEdGraphNode>(A->GetOwningNode());
+	UStateMachineTaskEdGraphNode* NodeB = Cast<UStateMachineTaskEdGraphNode>(B->GetOwningNode());
+	
+	if ((NodeA != NULL) && (NodeB != NULL) 
+		&& (NodeA->GetInputPin() != NULL) && (NodeA->GetOutputPin() != NULL)
+		&& (NodeB->GetInputPin() != NULL) && (NodeB->GetOutputPin() != NULL))
+	{
+		FVector2D Location = (FVector2D(NodeA->NodePosX, NodeA->NodePosY) + FVector2D(NodeB->NodePosX, NodeB->NodePosY)) * 0.5f;
+		UStateMachineTransitionEdGraphNode* TransitionNode =
+			FEdGraphSchemaAction_NewNode::SpawnNodeFromTemplate<UStateMachineTransitionEdGraphNode>(NodeA->GetGraph(),
+				NewObject<UStateMachineTransitionEdGraphNode>(), Location, false);
+		
+		if (A->Direction == EGPD_Output)
+		{
+			TransitionNode->CreateConnections(NodeA, NodeB);
+		}
+		else
+		{
+			TransitionNode->CreateConnections(NodeB, NodeA);
+		}
+		return true;
+	}
+	
+	return Super::CreateAutomaticConversionNodeAndConnections(A, B);
+}
+
+FLinearColor UStateMachineGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
+{
+	return FLinearColor::White;
 }
 
 TSharedPtr<FGraphNodeClassHelper> ClassCache;

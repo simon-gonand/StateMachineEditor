@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "StateMachineGraphSchema.h"
 #include "Modules/ModuleManager.h"
 
 struct FStateMachinePinFactory;
@@ -20,4 +21,5 @@ public:
 private:
 	TSharedPtr<FStateMachineNodeFactory> StateMachineGraphNodeFactory;
 	TSharedPtr<FStateMachinePinFactory> StateMachineGraphPinFactory;
+	TSharedPtr<FStateMachinePinConnectionFactory> StateMachinePinConnectionFactory;
 };

@@ -171,7 +171,14 @@ void FStateMachineEditorApp::DeleteSelectedNodes()
 	}
 
 	const FScopedTransaction Transaction(FGenericCommands::Get().Delete->GetDescription());
-	StateMachineGraphEditor->GetCurrentGraph()->Modify();
+	UEdGraph* Graph = StateMachineGraphEditor->GetCurrentGraph();
+	if (!Graph)
+		return;
+	const UEdGraphSchema* Schema = Graph->GetSchema();
+	if (!Schema)
+		return;
+	
+	Graph->Modify();
 
 	const FGraphPanelSelectionSet SelectedNodes = StateMachineGraphEditor->GetSelectedNodes();
 	StateMachineGraphEditor->ClearSelectionSet();
@@ -183,6 +190,7 @@ void FStateMachineEditorApp::DeleteSelectedNodes()
 			if (Node->CanUserDeleteNode())
 			{
 				Node->Modify();
+				Schema->BreakNodeLinks(*Node);
 				Node->DestroyNode();
 			}
 		}

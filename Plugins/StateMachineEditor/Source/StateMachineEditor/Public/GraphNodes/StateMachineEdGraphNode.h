@@ -19,10 +19,9 @@ public:
 	UPROPERTY()
 	struct FGraphNodeClassData ClassData;
 
-protected:
-	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
-
-private:
 	UEdGraphPin* GetOutputPin();
 	UEdGraphPin* GetInputPin();
+
+protected:
+	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
 };

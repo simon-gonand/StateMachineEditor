@@ -3,6 +3,7 @@
 #include "StateMachineEditor.h"
 
 #include "StateMachineGraphSchema.h"
+#include "StateMachinesConnectionDrawingPolicy.h"
 
 void FStateMachineEditorModule::StartupModule()
 {
@@ -12,6 +13,9 @@ void FStateMachineEditorModule::StartupModule()
 
 	StateMachineGraphPinFactory = MakeShareable(new FStateMachinePinFactory());
 	FEdGraphUtilities::RegisterVisualPinFactory(StateMachineGraphPinFactory);
+
+	StateMachinePinConnectionFactory = MakeShareable(new FStateMachinePinConnectionFactory());
+	FEdGraphUtilities::RegisterVisualPinConnectionFactory(StateMachinePinConnectionFactory);
 }
 
 void FStateMachineEditorModule::ShutdownModule()
