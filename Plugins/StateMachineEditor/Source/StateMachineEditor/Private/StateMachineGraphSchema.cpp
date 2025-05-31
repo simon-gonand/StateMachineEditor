@@ -3,6 +3,7 @@
 
 #include "StateMachineGraphSchema.h"
 
+#include "AIGraphSchema.h"
 #include "BlueprintActionDatabase.h"
 #include "StateMachinesConnectionDrawingPolicy.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -15,6 +16,7 @@
 #include "KismetPins/SGraphPinExec.h"
 #include "Nodes/StateMachineNode.h"
 #include "Nodes/Tasks/StateMachineTask.h"
+#include "Settings/EditorStyleSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "FStateMachineGraphSchema"
@@ -60,6 +62,107 @@ class FConnectionDrawingPolicy* FStateMachinePinConnectionFactory::CreateConnect
 	}
 
 	return nullptr;
+}
+
+namespace 
+{
+	// Maximum distance a drag can be off a node edge to require 'push off' from node
+	const int32 NodeDistance = 60;
+}
+
+UEdGraphNode* FStateMachineSchemaAction_NewNode::PerformAction(class UEdGraph* ParentGraph, UEdGraphPin* FromPin,
+	const FVector2D Location, bool bSelectNewNode)
+{
+	UEdGraphNode* ResultNode = nullptr;
+
+#if WITH_EDITOR
+	// If there is a template, we actually use it
+	if (NodeTemplate != nullptr)
+	{
+		const FScopedTransaction Transaction(LOCTEXT("AddNode", "Add Node"));
+		ParentGraph->Modify();
+		if (FromPin)
+		{
+			FromPin->Modify();
+		}
+
+		ResultNode = CreateNode(ParentGraph, FromPin, Location, NodeTemplate);
+	}
+#endif // WITH_EDITOR
+
+	return ResultNode;
+}
+
+UEdGraphNode* FStateMachineSchemaAction_NewNode::PerformAction(class UEdGraph* ParentGraph,
+	TArray<UEdGraphPin*>& FromPins, const FVector2D Location, bool bSelectNewNode)
+{
+	UEdGraphNode* ResultNode = nullptr;
+
+#if WITH_EDITOR
+	if (FromPins.Num() > 0)
+	{
+		ResultNode = PerformAction(ParentGraph, FromPins[0], Location, bSelectNewNode);
+
+		// Try autowiring the rest of the pins
+		for (int32 Index = 1; Index < FromPins.Num(); ++Index)
+		{
+			ResultNode->AutowireNewNode(FromPins[Index]);
+		}
+	}
+	else
+	{
+		ResultNode = PerformAction(ParentGraph, nullptr, Location, bSelectNewNode);
+	}
+#endif // WITH_EDITOR
+
+	return ResultNode;
+}
+
+void FStateMachineSchemaAction_NewNode::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	FEdGraphSchemaAction::AddReferencedObjects( Collector );
+
+	// These don't get saved to disk, but we want to make sure the objects don't get GC'd while the action array is around
+	Collector.AddReferencedObject( NodeTemplate );
+}
+
+UEdGraphNode* FStateMachineSchemaAction_NewNode::CreateNode(class UEdGraph* ParentGraph, UEdGraphPin* FromPin,
+	const FVector2D Location, class UEdGraphNode* InNodeTemplate)
+{
+	// Duplicate template node to create new node
+
+#if WITH_EDITOR
+	InNodeTemplate->SetFlags(RF_Transactional);
+
+	ParentGraph->AddNode(InNodeTemplate, true);
+
+	InNodeTemplate->CreateNewGuid();
+	InNodeTemplate->PostPlacedNewNode();
+	InNodeTemplate->AllocateDefaultPins();
+	InNodeTemplate->AutowireNewNode(FromPin);
+
+	// For input pins, new node will generally overlap node being dragged off
+	// Work out if we want to visually push away from connected node
+	int32 XLocation = Location.X;
+	if (FromPin && FromPin->Direction == EGPD_Input)
+	{
+		UEdGraphNode* PinNode = FromPin->GetOwningNode();
+		const float XDelta = FMath::Abs(PinNode->NodePosX - Location.X);
+
+		if (XDelta < NodeDistance)
+		{
+			// Set location to edge of current node minus the max move distance
+			// to force node to push off from connect node enough to give selection handle
+			XLocation = PinNode->NodePosX - NodeDistance;
+		}
+	}
+
+	InNodeTemplate->NodePosX = XLocation;
+	InNodeTemplate->NodePosY = Location.Y;
+	InNodeTemplate->SnapToGrid(GetDefault<UEditorStyleSettings>()->GridSnapSize);
+#endif // WITH_EDITOR
+
+	return InNodeTemplate;
 }
 
 void UStateMachineGraphSchema::CreateDefaultNodesForGraph(UEdGraph& Graph) const
@@ -114,6 +217,7 @@ bool UStateMachineGraphSchema::CreateAutomaticConversionNodeAndConnections(UEdGr
 {
 	UStateMachineTaskEdGraphNode* NodeA = Cast<UStateMachineTaskEdGraphNode>(A->GetOwningNode());
 	UStateMachineTaskEdGraphNode* NodeB = Cast<UStateMachineTaskEdGraphNode>(B->GetOwningNode());
+	UEdGraph* Graph = NodeA->GetGraph();
 	
 	if ((NodeA != NULL) && (NodeB != NULL) 
 		&& (NodeA->GetInputPin() != NULL) && (NodeA->GetOutputPin() != NULL)
@@ -121,8 +225,8 @@ bool UStateMachineGraphSchema::CreateAutomaticConversionNodeAndConnections(UEdGr
 	{
 		FVector2D Location = (FVector2D(NodeA->NodePosX, NodeA->NodePosY) + FVector2D(NodeB->NodePosX, NodeB->NodePosY)) * 0.5f;
 		UStateMachineTransitionEdGraphNode* TransitionNode =
-			FEdGraphSchemaAction_NewNode::SpawnNodeFromTemplate<UStateMachineTransitionEdGraphNode>(NodeA->GetGraph(),
-				NewObject<UStateMachineTransitionEdGraphNode>(), Location, false);
+			FStateMachineSchemaAction_NewNode::SpawnNodeFromTemplate<UStateMachineTransitionEdGraphNode>(NodeA->GetGraph(),
+				NewObject<UStateMachineTransitionEdGraphNode>(Graph), Location, false);
 		
 		if (A->Direction == EGPD_Output)
 		{
@@ -162,6 +266,8 @@ void UStateMachineGraphSchema::AddNodeOption(const FString& CategoryName, FGraph
 {
 	FCategorizedGraphActionListBuilder ListBuilder(CategoryName);
 	
+	UEdGraph* Graph = (UEdGraph*)ContextMenuBuilder.CurrentGraph;
+	
 	TArray<FGraphNodeClassData> ClassData;
 	GetClassCache().GatherClasses(RuntimeNode, ClassData);
 
@@ -181,11 +287,11 @@ void UStateMachineGraphSchema::AddNodeOption(const FString& CategoryName, FGraph
 			continue;
 
 		const FText NodeTypeName = FText::FromString(FName::NameToDisplayString(NodeClassData.ToString(), false));
-		TSharedPtr<FEdGraphSchemaAction_NewNode> NewNodeAction = MakeShareable(
-			new FEdGraphSchemaAction_NewNode(NodeClassData.GetCategory(), NodeTypeName, FText::GetEmpty(), 0));
+		TSharedPtr<FStateMachineSchemaAction_NewNode> NewNodeAction = MakeShareable(
+			new FStateMachineSchemaAction_NewNode(NodeClassData.GetCategory(), NodeTypeName, FText::GetEmpty(), 0));
 		ListBuilder.AddAction(NewNodeAction);
 
-		UStateMachineEdGraphNode* TaskNode = NewObject<UStateMachineEdGraphNode>(ContextMenuBuilder.OwnerOfTemporaries, EditorNode);
+		UStateMachineEdGraphNode* TaskNode = NewObject<UStateMachineEdGraphNode>(Graph, EditorNode);
 		TaskNode->ClassData = NodeClassData;
 		NewNodeAction->NodeTemplate = TaskNode;
 	}

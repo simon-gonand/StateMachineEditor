@@ -23,6 +23,46 @@ struct STATEMACHINEEDITOR_API FStateMachinePinConnectionFactory : public FGraphP
 	virtual class FConnectionDrawingPolicy* CreateConnectionPolicy(const class UEdGraphSchema* Schema, int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor, const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements, class UEdGraph* InGraphObj) const override;
 };
 
+USTRUCT()
+struct STATEMACHINEEDITOR_API FStateMachineSchemaAction_NewNode : public FEdGraphSchemaAction
+{
+	GENERATED_USTRUCT_BODY()
+
+	// Simple type info
+	static FName StaticGetTypeId() {static FName Type("FStateMachineSchemaAction_NewNode"); return Type;}
+	virtual FName GetTypeId() const override { return StaticGetTypeId(); } 
+
+	/** Template of node we want to create */
+	UPROPERTY()
+	TObjectPtr<class UEdGraphNode> NodeTemplate;
+
+	FStateMachineSchemaAction_NewNode() 
+		: FEdGraphSchemaAction()
+		, NodeTemplate(nullptr)
+	{}
+
+	FStateMachineSchemaAction_NewNode(FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping)
+		: FEdGraphSchemaAction(MoveTemp(InNodeCategory), MoveTemp(InMenuDesc), MoveTemp(InToolTip), InGrouping)
+		, NodeTemplate(nullptr)
+	{}
+
+	virtual UEdGraphNode* PerformAction(class UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode = true) override;
+	virtual UEdGraphNode* PerformAction(class UEdGraph* ParentGraph, TArray<UEdGraphPin*>& FromPins, const FVector2D Location, bool bSelectNewNode = true) override;
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	// End of FEdGraphSchemaAction interface
+
+	template <typename NodeType>
+	static NodeType* SpawnNodeFromTemplate(class UEdGraph* ParentGraph, NodeType* InTemplateNode, const FVector2D Location, bool bSelectNewNode = true)
+	{
+		FStateMachineSchemaAction_NewNode Action;
+		Action.NodeTemplate = InTemplateNode;
+
+		return Cast<NodeType>(Action.PerformAction(ParentGraph, nullptr, Location, bSelectNewNode));
+	}
+
+	static UEdGraphNode* CreateNode(class UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, class UEdGraphNode* InNodeTemplate);
+};
+
 /**
  * 
  */

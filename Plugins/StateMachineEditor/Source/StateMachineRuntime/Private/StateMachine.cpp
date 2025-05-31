@@ -9,6 +9,11 @@ void UStateMachine::SetEntryTask(UStateMachineTask* Task)
 	EntryTask = Task;
 }
 
+UStateMachineTask* UStateMachine::GetEntryTask() const
+{
+	return EntryTask;
+}
+
 UEdGraph* UStateMachine::GetSourceGraph() const
 {
 	return SourceGraph;

@@ -22,6 +22,8 @@ public:
 	void SetEntryTask(UStateMachineTask* Task);
 #endif
 
+	UStateMachineTask* GetEntryTask() const;
+
 private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()

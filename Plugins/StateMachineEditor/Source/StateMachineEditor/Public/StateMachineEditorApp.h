@@ -22,6 +22,8 @@ public:
 
 	void RestoreStateMachine();
 
+	virtual void SaveAsset_Execute() override;
+
 private:
 	TSharedPtr<FDocumentTracker> DocumentManager;
 
@@ -47,4 +49,6 @@ private:
 	void DeleteDuplicatableNodes();
 	bool CanSelectAllNodes();
 	void SelectAllNodes();
+
+	void FindNextTasks(UStateMachineTask* Task);
 };

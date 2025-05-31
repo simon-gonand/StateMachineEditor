@@ -3,8 +3,11 @@
 
 #include "GraphNodes/StateMachineTransitionEdGraphNode.h"
 
+#include "GraphNodes/StateMachineTaskEdGraphNode.h"
+#include "Nodes/StateMachineTransition.h"
+
 void UStateMachineTransitionEdGraphNode::CreateConnections(UStateMachineEdGraphNode* NodeA,
-	UStateMachineEdGraphNode* NodeB)
+                                                           UStateMachineEdGraphNode* NodeB)
 {
 	// Previous to this
 	Pins[0]->Modify();
@@ -19,6 +22,12 @@ void UStateMachineTransitionEdGraphNode::CreateConnections(UStateMachineEdGraphN
 
 	NodeB->GetInputPin()->Modify();
 	Pins[1]->MakeLinkTo(NodeB->GetInputPin());
+
+	// Not sure if node instances will be created at this point
+	if (NodeInstance)
+	{
+		NodeInstance->SetLinkedTask(Cast<UStateMachineTaskEdGraphNode>(NodeB)->GetNodeInstance());
+	}
 }
 
 UStateMachineEdGraphNode* UStateMachineTransitionEdGraphNode::GetInputConnectedNode()
@@ -37,6 +46,11 @@ UStateMachineEdGraphNode* UStateMachineTransitionEdGraphNode::GetOutputConnected
 	return Cast<UStateMachineEdGraphNode>(Pins[1]->LinkedTo[0]->GetOwningNode());
 }
 
+UStateMachineTransition* UStateMachineTransitionEdGraphNode::GetNodeInstance() const
+{
+	return NodeInstance;
+}
+
 void UStateMachineTransitionEdGraphNode::AllocateDefaultPins()
 {
 	UEdGraphPin* Inputs = CreatePin(EGPD_Input, TEXT("Transition"), TEXT("In"));
@@ -49,7 +63,6 @@ void UStateMachineTransitionEdGraphNode::PinConnectionListChanged(UEdGraphPin* P
 {
 	if (Pin->LinkedTo.IsEmpty())
 	{
-		
 		// Commit suicide; transitions must always have an input and output connection
 		Modify();
 

@@ -6,6 +6,7 @@
 #include "Nodes/StateMachineNode.h"
 #include "StateMachineTask.generated.h"
 
+class UStateMachineTransition;
 /**
  * 
  */
@@ -14,7 +15,12 @@ class STATEMACHINERUNTIME_API UStateMachineTask : public UStateMachineNode
 {
 	GENERATED_BODY()
 
+public:
+	void EmptyLinkedTransitions();
+	void AddLinkedTransition(UStateMachineTransition* TaskToLink);
+	TArray<UStateMachineTransition*> GetLinkedTransitions() const;
+	
 private:
 	UPROPERTY()
-	TArray<UStateMachineTask*> LinkedTasks;
+	TArray<UStateMachineTransition*> LinkedTransitions;
 };

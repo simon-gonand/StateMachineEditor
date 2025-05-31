@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "StateMachineEdGraphNode.h"
+#include "Nodes/Tasks/StateMachineTask.h"
 #include "StateMachineTaskEdGraphNode.generated.h"
 
 /**
@@ -14,8 +15,22 @@ class STATEMACHINEEDITOR_API UStateMachineTaskEdGraphNode : public UStateMachine
 {
 	GENERATED_BODY()
 
+public:
+	UStateMachineTask* GetNodeInstance() const;
+	
 protected:
 	virtual void AllocateDefaultPins() override;
 
 	virtual void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
+
+	virtual void PostPlacedNewNode() override;
+
+	virtual void NodeConnectionListChanged() override;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UStateMachineTask> NodeInstance;
+
+	void CheckInputLinks();
+	void FillOutputLinks();
 };

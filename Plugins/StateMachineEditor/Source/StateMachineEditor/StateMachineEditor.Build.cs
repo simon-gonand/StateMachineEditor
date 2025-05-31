@@ -29,7 +29,7 @@ public class StateMachineEditor : ModuleRules
 				"ApplicationCore",
 				"Kismet",
 				"UnrealEd", 
-				"AIGraph",
+				"AIGraph"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

@@ -77,6 +77,21 @@ void FStateMachineEditorApp::RestoreStateMachine()
 	TSharedPtr<SDockTab> DocumentTab = DocumentManager->OpenDocument(Payload, FDocumentTracker::OpenNewDocument);
 }
 
+void FStateMachineEditorApp::SaveAsset_Execute()
+{
+	FWorkflowCentricApplication::SaveAsset_Execute();
+	UStateMachine* StateMachine = Cast<UStateMachine>(GetEditingObject());
+	if (!StateMachine)
+		return;
+
+	UStateMachineTask* Task = StateMachine->GetEntryTask();
+	if (!Task)
+		return;
+
+	UE_LOG(LogStateMachineEditor, Display, TEXT("Entry Task Found %s"), *Task->GetName());
+	FindNextTasks(Task);
+}
+
 void FStateMachineEditorApp::CreateCommandList()
 {
 	if (GraphEditorCommands.IsValid())
@@ -407,4 +422,13 @@ void FStateMachineEditorApp::SelectAllNodes()
 			return;
 		}
 	}
+}
+
+void FStateMachineEditorApp::FindNextTasks(UStateMachineTask* Task)
+{
+	/*for (UStateMachineTask* NextTask : Task->GetLinkedTasks())
+	{
+		UE_LOG(LogStateMachineEditor, Display, TEXT("Next Task Found %s"), *NextTask->GetName());
+		FindNextTasks(NextTask);
+	}*/
 }
