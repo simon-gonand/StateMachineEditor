@@ -17,6 +17,7 @@ class STATEMACHINEEDITOR_API UStateMachineTaskEdGraphNode : public UStateMachine
 
 public:
 	UStateMachineTask* GetNodeInstance() const;
+	virtual void NodeConnectionListChanged() override;
 	
 protected:
 	virtual void AllocateDefaultPins() override;
@@ -25,8 +26,8 @@ protected:
 
 	virtual void PostPlacedNewNode() override;
 
-	virtual void NodeConnectionListChanged() override;
 
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UStateMachineTask> NodeInstance;

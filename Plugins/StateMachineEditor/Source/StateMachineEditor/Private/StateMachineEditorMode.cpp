@@ -8,9 +8,10 @@ FStateMachineEditorMode::FStateMachineEditorMode(TSharedPtr<class FStateMachineE
 {
 	EditorApp = InEditorApp;
 
-	// Register Tab Factories here	
+	// Register Tab Factories here
+	Tabs.RegisterFactory(MakeShareable(new FSMDetailsSummoner(InEditorApp)));
 	
-	TabLayout = FTabManager::NewLayout("StateMachineEditorMode_Layout_V2")
+	TabLayout = FTabManager::NewLayout("StateMachineEditorMode_Layout_V3")
 	->AddArea
 	(
 		FTabManager::NewPrimaryArea()
@@ -21,9 +22,15 @@ FStateMachineEditorMode::FStateMachineEditorMode(TSharedPtr<class FStateMachineE
 			->SetOrientation(Orient_Horizontal)
 			->Split
 			(
-			FTabManager::NewStack()
-				->SetSizeCoefficient(1.0f)
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.7f)
 				->AddTab(FStateMachineEditorTabs::GraphEditorID, ETabState::ClosedTab)
+			)
+			->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.3f)
+				->AddTab(FStateMachineEditorTabs::GraphDetailsID, ETabState::OpenedTab)
 			)
 		)
 	);
@@ -31,6 +38,11 @@ FStateMachineEditorMode::FStateMachineEditorMode(TSharedPtr<class FStateMachineE
 
 void FStateMachineEditorMode::RegisterTabFactories(TSharedPtr<FTabManager> InTabManager)
 {
+	check(EditorApp.IsValid());
+
+	TSharedPtr<FStateMachineEditorApp> StateMachineEditorPtr = EditorApp.Pin();
+
+	StateMachineEditorPtr->PushTabFactories(Tabs);
 	FApplicationMode::RegisterTabFactories(InTabManager);
 }
 

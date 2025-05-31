@@ -10,7 +10,7 @@ class UStateMachineTask;
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType, EditInlineNew, Abstract)
 class STATEMACHINERUNTIME_API UStateMachineTransition : public UStateMachineNode
 {
 	GENERATED_BODY()

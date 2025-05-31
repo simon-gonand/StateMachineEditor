@@ -45,6 +45,7 @@ void UStateMachineTaskEdGraphNode::NodeConnectionListChanged()
 	Super::NodeConnectionListChanged();
 	CheckInputLinks(); // If input is linked to entry then set entry task in the StateMachine object
 	FillOutputLinks(); // Fill the linked tasks to the ouput pin
+	Modify();
 }
 
 void UStateMachineTaskEdGraphNode::CheckInputLinks()

@@ -23,7 +23,7 @@ void UStateMachineTransitionEdGraphNode::CreateConnections(UStateMachineEdGraphN
 	NodeB->GetInputPin()->Modify();
 	Pins[1]->MakeLinkTo(NodeB->GetInputPin());
 
-	// Not sure if node instances will be created at this point
+	// Node Instance needs to have a default value
 	if (NodeInstance)
 	{
 		NodeInstance->SetLinkedTask(Cast<UStateMachineTaskEdGraphNode>(NodeB)->GetNodeInstance());
@@ -73,5 +73,28 @@ void UStateMachineTransitionEdGraphNode::PinConnectionListChanged(UEdGraphPin* P
 		}
 
 		DestroyNode();
+	}
+}
+
+void UStateMachineTransitionEdGraphNode::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UStateMachineTransitionEdGraphNode, NodeInstance))
+	{
+		if (NodeInstance)
+		{
+			if (UStateMachineTaskEdGraphNode* InputLinkedTaskGraphNode = Cast<UStateMachineTaskEdGraphNode>(GetInputConnectedNode()))
+			{
+				InputLinkedTaskGraphNode->NodeConnectionListChanged();
+			}
+			if (UStateMachineTaskEdGraphNode* OutputLinkedTaskGraphNode = Cast<UStateMachineTaskEdGraphNode>(GetOutputConnectedNode()))
+			{
+				NodeInstance->SetLinkedTask(OutputLinkedTaskGraphNode->GetNodeInstance());
+			}
+
+			NodeInstance->Modify();
+			Modify();
+		}
 	}
 }

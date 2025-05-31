@@ -8,6 +8,7 @@
 struct FStateMachineEditorTabs
 {
 	static const FName GraphEditorID;
+	static const FName GraphDetailsID;
 };
 
 struct FSMGraphEditorSummoner : public FDocumentTabFactoryForObjects<UEdGraph>
@@ -21,9 +22,21 @@ protected:
 	virtual TAttribute<FText> ConstructTabNameForObject(UEdGraph* DocumentID) const override;
 	virtual TSharedRef<SWidget> CreateTabBodyForObject(const FWorkflowTabSpawnInfo& Info, UEdGraph* DocumentID) const override;
 	virtual const FSlateBrush* GetTabIconForObject(const FWorkflowTabSpawnInfo& Info, UEdGraph* DocumentID) const override;
-	
+	virtual void OnTabActivated(TSharedPtr<SDockTab> Tab) const override;
 
 private:
 	TWeakPtr<FStateMachineEditorApp> StateMachineEditorPtr;
 	FOnCreateGraphEditorWidget OnCreateGraphEditorWidget;
+};
+
+struct FSMDetailsSummoner : public FWorkflowTabFactory
+{
+public:
+	FSMDetailsSummoner(TSharedPtr<class FStateMachineEditorApp> InStateMachineEditorPtr);
+
+	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
+	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
+
+protected:
+	TWeakPtr<class FStateMachineEditorApp> StateMachineEditorPtr;
 };

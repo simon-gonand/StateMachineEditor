@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "StateMachineEdGraphNode.h"
+#include "Nodes/StateMachineTransition.h"
 #include "StateMachineTransitionEdGraphNode.generated.h"
 
-class UStateMachineTransition;
 /**
  * 
  */
@@ -27,6 +27,8 @@ protected:
 	virtual void AllocateDefaultPins() override;
 
 	virtual void PinConnectionListChanged(UEdGraphPin* Pin) override;
+
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
 private:
 	UPROPERTY(EditAnywhere, Instanced)

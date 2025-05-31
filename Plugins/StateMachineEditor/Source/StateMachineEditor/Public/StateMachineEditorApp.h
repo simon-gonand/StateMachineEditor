@@ -12,6 +12,7 @@ public:
 	
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	void InitEditor(const EToolkitMode::Type Mode,  const TSharedPtr<class IToolkitHost>& InitToolkitHost, UStateMachine* Object);
+	TSharedRef<SWidget> SpawnProperties() const;
 	
 	// Begin FAssetEditorToolkit interface
 	virtual FName GetToolkitFName() const override { return FName(TEXT("StateMachineEditor")); }
@@ -21,8 +22,8 @@ public:
 	// End FAssetEditorToolkit interface
 
 	void RestoreStateMachine();
-
-	virtual void SaveAsset_Execute() override;
+	
+	void OnGraphEditorFocused(const TSharedRef<SGraphEditor>& InGraphEditor);
 
 private:
 	TSharedPtr<FDocumentTracker> DocumentManager;
@@ -33,8 +34,17 @@ private:
 
 	TSharedPtr<SGraphEditor> StateMachineGraphEditor;
 
+	/** Property View */
+	TSharedPtr<class IDetailsView> DetailsView;
+
+	void InitGraph(UStateMachine* StateMachine);
+	void InitDocumentManager();
 	void CreateCommandList();
 	TSharedRef<SGraphEditor> CreateGraphEditorWidget(UEdGraph* InGraph);
+	void CreateInternalWidgets();
+
+	bool IsInEditingMode(bool bGraphEditable) const;
+	bool IsPropertyEditable() const;
 	
 	// Graph Editor Commands Action
 	bool CanDeleteSelectedNodes();
@@ -50,5 +60,5 @@ private:
 	bool CanSelectAllNodes();
 	void SelectAllNodes();
 
-	void FindNextTasks(UStateMachineTask* Task);
+	void OnSelectedNodesChanged(const TSet<class UObject*>& NewSelection);
 };

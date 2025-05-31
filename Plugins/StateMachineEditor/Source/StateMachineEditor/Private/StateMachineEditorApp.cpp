@@ -6,6 +6,8 @@
 #include "StateMachineGraphSchema.h"
 #include "GraphNodes/StateMachineEdGraphNode.h"
 #include "GraphNodes/StateMachineEntryEdGraphNode.h"
+#include "GraphNodes/StateMachineTaskEdGraphNode.h"
+#include "GraphNodes/StateMachineTransitionEdGraphNode.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "HAL/PlatformApplicationMisc.h"
 
@@ -31,18 +33,55 @@ void FStateMachineEditorApp::InitEditor(const EToolkitMode::Type Mode,
 		return;
 	}
 
-	if (Object->GetSourceGraph())
+	InitGraph(Object);
+	InitDocumentManager();
+	
+	TArray<UObject*> Objects;
+	Objects.Add(Object);
+	InitAssetEditor(Mode, InitToolkitHost, TEXT("StateMachineEditor"), FTabManager::FLayout::NullLayout,
+		true, true, Objects);
+
+	CreateInternalWidgets();
+
+	const FName DefaultMode = TEXT("StateMachineEditorMode");
+	AddApplicationMode(DefaultMode, MakeShareable(new FStateMachineEditorMode(SharedThis(this))));
+	SetCurrentMode(DefaultMode);
+
+	RegenerateMenusAndToolbars();
+}
+
+TSharedRef<SWidget> FStateMachineEditorApp::SpawnProperties() const
+{
+	return DetailsView.ToSharedRef();
+		/*SNew(SOverlay)
+		+SOverlay::Slot()
+		[
+			DetailsView.ToSharedRef()
+		];*/
+}
+
+void FStateMachineEditorApp::RestoreStateMachine()
+{
+	TSharedRef<FTabPayload_UObject> Payload = FTabPayload_UObject::Make(GraphEditor);
+	TSharedPtr<SDockTab> DocumentTab = DocumentManager->OpenDocument(Payload, FDocumentTracker::OpenNewDocument);
+}
+
+void FStateMachineEditorApp::InitGraph(UStateMachine* StateMachine)
+{
+	if (StateMachine->GetSourceGraph())
 	{
-		GraphEditor = Object->GetSourceGraph();
+		GraphEditor = StateMachine->GetSourceGraph();
 	}
 	else
 	{
-		GraphEditor = FBlueprintEditorUtils::CreateNewGraph(Object, FName("StateMachineGraph"), UEdGraph::StaticClass(), UStateMachineGraphSchema::StaticClass());
+		GraphEditor = FBlueprintEditorUtils::CreateNewGraph(StateMachine, FName("StateMachineGraph"), UEdGraph::StaticClass(), UStateMachineGraphSchema::StaticClass());
 		GraphEditor->GetSchema()->CreateDefaultNodesForGraph(*GraphEditor);
-		Object->SetSourceGraph(GraphEditor);
+		StateMachine->SetSourceGraph(GraphEditor);
 	}
+}
 
-	
+void FStateMachineEditorApp::InitDocumentManager()
+{
 	TSharedPtr<FStateMachineEditorApp> ThisPtr(SharedThis(this));
 	if(!DocumentManager.IsValid())
 	{
@@ -58,38 +97,6 @@ void FStateMachineEditorApp::InitEditor(const EToolkitMode::Type Mode,
 			DocumentManager->RegisterDocumentFactory(GraphEditorFactory);
 		}
 	}
-	
-	TArray<UObject*> Objects;
-	Objects.Add(Object);
-	InitAssetEditor(Mode, InitToolkitHost, TEXT("StateMachineEditor"), FTabManager::FLayout::NullLayout,
-		true, true, Objects);
-
-	const FName DefaultMode = TEXT("StateMachineEditorMode");
-	AddApplicationMode(DefaultMode, MakeShareable(new FStateMachineEditorMode(SharedThis(this))));
-	SetCurrentMode(DefaultMode);
-
-	RegenerateMenusAndToolbars();
-}
-
-void FStateMachineEditorApp::RestoreStateMachine()
-{
-	TSharedRef<FTabPayload_UObject> Payload = FTabPayload_UObject::Make(GraphEditor);
-	TSharedPtr<SDockTab> DocumentTab = DocumentManager->OpenDocument(Payload, FDocumentTracker::OpenNewDocument);
-}
-
-void FStateMachineEditorApp::SaveAsset_Execute()
-{
-	FWorkflowCentricApplication::SaveAsset_Execute();
-	UStateMachine* StateMachine = Cast<UStateMachine>(GetEditingObject());
-	if (!StateMachine)
-		return;
-
-	UStateMachineTask* Task = StateMachine->GetEntryTask();
-	if (!Task)
-		return;
-
-	UE_LOG(LogStateMachineEditor, Display, TEXT("Entry Task Found %s"), *Task->GetName());
-	FindNextTasks(Task);
 }
 
 void FStateMachineEditorApp::CreateCommandList()
@@ -147,16 +154,50 @@ TSharedRef<SGraphEditor> FStateMachineEditorApp::CreateGraphEditorWidget(UEdGrap
 			]
 		];
 
+	bool bGraphIsEditable = InGraph->bEditable;
+	
 	FGraphAppearanceInfo AppearanceInfo;
 	AppearanceInfo.CornerText = FText::FromString("State Machine");
+
+	SGraphEditor::FGraphEditorEvents GraphEvent;
+	GraphEvent.OnSelectionChanged = SGraphEditor::FOnSelectionChanged::CreateSP(this, &FStateMachineEditorApp::OnSelectedNodesChanged);
 	
 	return SAssignNew(StateMachineGraphEditor, SGraphEditor)
 		.AdditionalCommands(GraphEditorCommands)
-		//.IsEditable(this, &FBehaviorTreeEditor::InEditingMode, bGraphIsEditable)
+		.IsEditable(this, &FStateMachineEditorApp::IsInEditingMode, bGraphIsEditable)
 		.Appearance(AppearanceInfo)
 		.TitleBar(TitleBarWidget)
 		.GraphToEdit(InGraph)
+		.GraphEvents(GraphEvent)
 		.AutoExpandActionMenu(true);
+}
+
+
+void FStateMachineEditorApp::CreateInternalWidgets()
+{
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>( "PropertyEditor" );
+	FDetailsViewArgs DetailsViewArgs; 
+	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
+	DetailsViewArgs.NotifyHook = this;
+	DetailsViewArgs.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Hide;
+	DetailsView = PropertyEditorModule.CreateDetailView( DetailsViewArgs );
+	DetailsView->SetObject(GetEditingObject());
+	DetailsView->SetIsPropertyEditingEnabledDelegate(FIsPropertyEditingEnabled::CreateSP(this, &FStateMachineEditorApp::IsPropertyEditable));
+}
+
+bool FStateMachineEditorApp::IsInEditingMode(bool bGraphEditable) const
+{
+	return bGraphEditable && !GEditor->bIsSimulatingInEditor && GEditor->PlayWorld == NULL;
+}
+
+bool FStateMachineEditorApp::IsPropertyEditable() const
+{
+	if (GEditor->bIsSimulatingInEditor || GEditor->PlayWorld)
+	{
+		return false;
+	}
+	
+	return GraphEditor && GraphEditor->bEditable;
 }
 
 bool FStateMachineEditorApp::CanDeleteSelectedNodes()
@@ -424,11 +465,37 @@ void FStateMachineEditorApp::SelectAllNodes()
 	}
 }
 
-void FStateMachineEditorApp::FindNextTasks(UStateMachineTask* Task)
+void FStateMachineEditorApp::OnSelectedNodesChanged(const TSet<class UObject*>& NewSelection)
 {
-	/*for (UStateMachineTask* NextTask : Task->GetLinkedTasks())
+	if (NewSelection.Num() == 0)
 	{
-		UE_LOG(LogStateMachineEditor, Display, TEXT("Next Task Found %s"), *NextTask->GetName());
-		FindNextTasks(NextTask);
-	}*/
+		DetailsView->SetObject(GetEditingObject());
+	}
+	else
+	{
+		TArray<UObject*> Selection;
+		for (UObject* SelectedObject : NewSelection)
+		{
+			if (!SelectedObject)
+				continue;
+
+			if (UStateMachineTaskEdGraphNode* SelectedNode = Cast<UStateMachineTaskEdGraphNode>(SelectedObject))
+			{
+				Selection.Add(SelectedNode->GetNodeInstance());
+			}
+			else if (UStateMachineTransitionEdGraphNode* SelectedTransitionNode = Cast<UStateMachineTransitionEdGraphNode>(SelectedObject))
+			{
+				Selection.Add(SelectedTransitionNode);
+			}
+		}
+
+		DetailsView->SetObjects(Selection);
+	}
+}
+
+void FStateMachineEditorApp::OnGraphEditorFocused(const TSharedRef<SGraphEditor>& InGraphEditor)
+{
+	FGraphPanelSelectionSet CurrentSelection;
+	CurrentSelection = InGraphEditor->GetSelectedNodes();
+	OnSelectedNodesChanged(CurrentSelection);
 }
