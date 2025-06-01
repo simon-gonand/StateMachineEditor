@@ -4,12 +4,12 @@
 #include "StateMachine.h"
 
 #if WITH_EDITOR
-void UStateMachine::SetEntryTask(UStateMachineTask* Task)
+void UStateMachine::SetEntryTask(UStateMachineState* Task)
 {
 	EntryTask = Task;
 }
 
-UStateMachineTask* UStateMachine::GetEntryTask() const
+UStateMachineState* UStateMachine::GetEntryTask() const
 {
 	return EntryTask;
 }

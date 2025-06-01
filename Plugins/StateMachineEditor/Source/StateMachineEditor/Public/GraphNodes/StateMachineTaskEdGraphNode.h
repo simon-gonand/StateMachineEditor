@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "StateMachineEdGraphNode.h"
-#include "Nodes/Tasks/StateMachineTask.h"
+#include "Nodes/Tasks/StateMachineState.h"
 #include "StateMachineTaskEdGraphNode.generated.h"
 
 /**
@@ -16,7 +16,7 @@ class STATEMACHINEEDITOR_API UStateMachineTaskEdGraphNode : public UStateMachine
 	GENERATED_BODY()
 
 public:
-	UStateMachineTask* GetNodeInstance() const;
+	UStateMachineState* GetNodeInstance() const;
 	virtual void NodeConnectionListChanged() override;
 	
 protected:
@@ -30,7 +30,7 @@ protected:
 	
 private:
 	UPROPERTY()
-	TObjectPtr<UStateMachineTask> NodeInstance;
+	TObjectPtr<UStateMachineState> NodeInstance;
 
 	void CheckInputLinks();
 	void FillOutputLinks();

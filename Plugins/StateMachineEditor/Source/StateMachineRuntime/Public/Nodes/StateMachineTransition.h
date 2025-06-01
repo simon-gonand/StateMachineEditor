@@ -6,7 +6,8 @@
 #include "StateMachineNode.h"
 #include "StateMachineTransition.generated.h"
 
-class UStateMachineTask;
+class UStateMachineComponent;
+class UStateMachineState;
 /**
  * 
  */
@@ -16,10 +17,13 @@ class STATEMACHINERUNTIME_API UStateMachineTransition : public UStateMachineNode
 	GENERATED_BODY()
 
 public:
-	void SetLinkedTask(UStateMachineTask* TaskToLink);
-	UStateMachineTask* GetLinkedTasks() const;
+	void SetLinkedTask(UStateMachineState* TaskToLink);
+	UStateMachineState* GetLinkedTasks() const;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "StateMachine")
+	bool CanGoThrough(UStateMachineComponent* OwnerComp);
 	
 private:
 	UPROPERTY()
-	UStateMachineTask* LinkedTask;
+	UStateMachineState* LinkedState;
 };

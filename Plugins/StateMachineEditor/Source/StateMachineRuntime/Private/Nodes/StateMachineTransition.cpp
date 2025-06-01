@@ -3,12 +3,17 @@
 
 #include "Nodes/StateMachineTransition.h"
 
-void UStateMachineTransition::SetLinkedTask(UStateMachineTask* TaskToLink)
+void UStateMachineTransition::SetLinkedTask(UStateMachineState* TaskToLink)
 {
-	LinkedTask = TaskToLink;
+	LinkedState = TaskToLink;
 }
 
-UStateMachineTask* UStateMachineTransition::GetLinkedTasks() const
+UStateMachineState* UStateMachineTransition::GetLinkedTasks() const
 {
-	return LinkedTask;
+	return LinkedState;
+}
+
+bool UStateMachineTransition::CanGoThrough_Implementation(UStateMachineComponent* OwnerComp)
+{
+	return true;
 }

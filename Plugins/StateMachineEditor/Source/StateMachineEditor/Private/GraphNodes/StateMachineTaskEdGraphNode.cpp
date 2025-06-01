@@ -8,7 +8,7 @@
 #include "GraphNodes/StateMachineEntryEdGraphNode.h"
 #include "GraphNodes/StateMachineTransitionEdGraphNode.h"
 
-UStateMachineTask* UStateMachineTaskEdGraphNode::GetNodeInstance() const
+UStateMachineState* UStateMachineTaskEdGraphNode::GetNodeInstance() const
 {
 	return NodeInstance;
 }
@@ -34,7 +34,7 @@ void UStateMachineTaskEdGraphNode::PostPlacedNewNode()
 		UObject* GraphOwner = Graph ? Graph->GetOuter() : nullptr;
 		if (GraphOwner)
 		{
-			NodeInstance = NewObject<UStateMachineTask>(Graph, NodeClass);
+			NodeInstance = NewObject<UStateMachineState>(Graph, NodeClass);
 			NodeInstance->SetFlags(RF_Transactional);
 		}
 	}

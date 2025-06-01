@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Nodes/Tasks/StateMachineTask.h"
+#include "Nodes/Tasks/StateMachineState.h"
 #include "UObject/Object.h"
 #include "StateMachine.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStateMachineEvent, UStateMachineComponent*, OwnerComp, UStateMachineState*, State);
 
 /**
  * 
@@ -16,13 +18,18 @@ class STATEMACHINERUNTIME_API UStateMachine : public UObject
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FStateMachineEvent OnNewStateEntered;
+	UPROPERTY(BlueprintAssignable)
+	FStateMachineEvent OnStateExited;
+	
 #if WITH_EDITOR
 	UEdGraph* GetSourceGraph() const;
 	void SetSourceGraph(UEdGraph* InSourceGraph);
-	void SetEntryTask(UStateMachineTask* Task);
+	void SetEntryTask(UStateMachineState* Task);
 #endif
 
-	UStateMachineTask* GetEntryTask() const;
+	UStateMachineState* GetEntryTask() const;
 
 private:
 #if WITH_EDITORONLY_DATA
@@ -31,5 +38,5 @@ private:
 #endif
 	
 	UPROPERTY()
-	UStateMachineTask* EntryTask;
+	UStateMachineState* EntryTask;
 };

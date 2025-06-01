@@ -15,7 +15,7 @@
 #include "GraphNodes/Slate/GraphNodeStateMachineTransition.h"
 #include "KismetPins/SGraphPinExec.h"
 #include "Nodes/StateMachineNode.h"
-#include "Nodes/Tasks/StateMachineTask.h"
+#include "Nodes/Tasks/StateMachineState.h"
 #include "Settings/EditorStyleSettings.h"
 
 
@@ -177,7 +177,7 @@ void UStateMachineGraphSchema::CreateDefaultNodesForGraph(UEdGraph& Graph) const
 void UStateMachineGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
 	FGraphNodeClassHelper& NodeClassHelper = GetClassCache();
-	AddNodeOption(TEXT("Tasks"), ContextMenuBuilder, UStateMachineTask::StaticClass(), UStateMachineTaskEdGraphNode::StaticClass());
+	AddNodeOption(TEXT("Tasks"), ContextMenuBuilder, UStateMachineState::StaticClass(), UStateMachineTaskEdGraphNode::StaticClass());
 }
 
 void UStateMachineGraphSchema::GetContextMenuActions(class UToolMenu* Menu,
@@ -254,7 +254,7 @@ FGraphNodeClassHelper& UStateMachineGraphSchema::GetClassCache() const
 	if (!ClassCache.IsValid())
 	{
 		ClassCache = MakeShareable(new FGraphNodeClassHelper(UStateMachineNode::StaticClass()));
-		FGraphNodeClassHelper::AddObservedBlueprintClasses(UStateMachineTask::StaticClass());
+		FGraphNodeClassHelper::AddObservedBlueprintClasses(UStateMachineState::StaticClass());
 		ClassCache->UpdateAvailableBlueprintClasses();
 	}
 
