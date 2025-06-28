@@ -17,4 +17,5 @@ public:
 	SLATE_END_ARGS()
 	
 	void Construct(const FArguments& InArgs, UStateMachineTaskEdGraphNode* InNode);
+	virtual FReply OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
 };

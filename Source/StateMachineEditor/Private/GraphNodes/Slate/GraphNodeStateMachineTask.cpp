@@ -11,3 +11,15 @@ void SGraphNodeStateMachineTask::Construct(const FArguments& InArgs, UStateMachi
 
 	this->UpdateGraphNode();
 }
+
+FReply SGraphNodeStateMachineTask::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry,
+	const FPointerEvent& InMouseEvent)
+{
+	FReply Reply = SGraphNode::OnMouseButtonDoubleClick(InMyGeometry, InMouseEvent);
+	if (UStateMachineTaskEdGraphNode* TaskGraphNode = Cast<UStateMachineTaskEdGraphNode>(GraphNode))
+	{
+		TaskGraphNode->OpenNodeInstanceEditor();
+		return FReply::Handled();
+	}
+	return Reply;
+}

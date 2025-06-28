@@ -18,6 +18,8 @@ class STATEMACHINEEDITOR_API UStateMachineTaskEdGraphNode : public UStateMachine
 public:
 	UStateMachineState* GetNodeInstance() const;
 	virtual void NodeConnectionListChanged() override;
+
+	void OpenNodeInstanceEditor();
 	
 protected:
 	virtual void AllocateDefaultPins() override;

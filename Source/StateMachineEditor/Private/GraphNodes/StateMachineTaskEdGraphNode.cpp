@@ -69,6 +69,21 @@ void UStateMachineTaskEdGraphNode::NodeConnectionListChanged()
 	Modify();
 }
 
+void UStateMachineTaskEdGraphNode::OpenNodeInstanceEditor()
+{
+	if (NodeInstance && NodeInstance->GetClass()->IsInBlueprint())
+	{
+		UClass* NodeClass = NodeInstance->GetClass();
+		UPackage* Pkg = NodeClass->GetOuterUPackage();
+		FString ClassName = NodeClass->GetName().LeftChop(2);
+		UBlueprint* BlueprintOb = FindObject<UBlueprint>(Pkg, *ClassName);
+		if(UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+		{
+			AssetEditorSubsystem->OpenEditorForAsset(BlueprintOb);
+		}
+	}
+}
+
 void UStateMachineTaskEdGraphNode::CheckInputLinks()
 {
 	UEdGraphPin* InputPin = GetInputPin();
