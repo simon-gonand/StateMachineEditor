@@ -31,6 +31,15 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "StateMachine")
 	void ExitingState(UStateMachineComponent* OwnerComp);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "StateMachine|Node")
+	FText GetNodeTitle() const;
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "StateMachine|Node")
+	FLinearColor GetNodeTitleColor() const;
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "StateMachine|Node")
+	FText GetTooltip() const;
 	
 private:
 	UPROPERTY()

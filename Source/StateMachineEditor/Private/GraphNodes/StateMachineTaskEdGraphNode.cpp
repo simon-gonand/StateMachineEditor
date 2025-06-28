@@ -19,8 +19,29 @@ void UStateMachineTaskEdGraphNode::AllocateDefaultPins()
 	UEdGraphPin* Output = CreatePin(EGPD_Output, UStateMachineGraphSchema::PC_Exec, TEXT("Out"));
 }
 
+FText UStateMachineTaskEdGraphNode::GetNodeTitle(ENodeTitleType::Type TitleType) const
+{
+	if (NodeInstance)
+		return NodeInstance->GetNodeTitle();
+	return Super::GetNodeTitle(TitleType);
+}
+
+FLinearColor UStateMachineTaskEdGraphNode::GetNodeTitleColor() const
+{
+	if (NodeInstance)
+		return NodeInstance->GetNodeTitleColor();
+	return Super::GetNodeTitleColor();
+}
+
+FText UStateMachineTaskEdGraphNode::GetTooltipText() const
+{
+	if (NodeInstance)
+		return NodeInstance->GetTooltip();
+	return Super::GetTooltipText();
+}
+
 void UStateMachineTaskEdGraphNode::GetNodeContextMenuActions(class UToolMenu* Menu,
-	class UGraphNodeContextMenuContext* Context) const
+                                                             class UGraphNodeContextMenuContext* Context) const
 {
 	Super::GetNodeContextMenuActions(Menu, Context);
 }

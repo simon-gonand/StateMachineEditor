@@ -35,6 +35,21 @@ UStateMachineState* UStateMachineState::GetNextState(UStateMachineComponent* Own
 	return nullptr;
 }
 
+FText UStateMachineState::GetTooltip_Implementation() const
+{
+	return FText::FromString("State of the state machine");
+}
+
+FLinearColor UStateMachineState::GetNodeTitleColor_Implementation() const
+{
+	return FLinearColor::Blue;
+}
+
+FText UStateMachineState::GetNodeTitle_Implementation() const
+{
+	return FText::FromString(GetClass()->GetName());
+}
+
 void UStateMachineState::EnteringState_Implementation(UStateMachineComponent* OwnerComp)
 {
 	if (OwnerComp && OwnerComp->GetStateMachine())
