@@ -85,7 +85,7 @@ void UStateMachineTaskEdGraphNode::CheckInputLinks()
 void UStateMachineTaskEdGraphNode::FillOutputLinks()
 {
 	UEdGraphPin* OutputPin = GetOutputPin();
-	if (!OutputPin)
+	if (!OutputPin || !NodeInstance)
 		return;
 
 	NodeInstance->EmptyLinkedTransitions();
