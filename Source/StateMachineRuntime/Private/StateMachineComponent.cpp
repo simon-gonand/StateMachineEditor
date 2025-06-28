@@ -64,6 +64,13 @@ void UStateMachineComponent::ExecuteTasksForCurrentState()
 	CurrentState->ExecuteTasks(this);
 }
 
+void UStateMachineComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if (bStartAtBeginPlay)
+		EvaluateNextState();
+}
+
 void UStateMachineComponent::OnStateExited(UStateMachineComponent* OwnerComp, UStateMachineState* StateToBeExited)
 {
 	StateMachine->OnStateExited.RemoveAll(this);

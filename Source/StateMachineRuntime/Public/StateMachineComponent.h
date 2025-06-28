@@ -28,9 +28,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "StateMachine")
 	void ExecuteTasksForCurrentState();
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintGetter=GetStateMachine, Category = "StateMachine")
 	UStateMachine* StateMachine;
+
+	UPROPERTY(EditAnywhere, Category = "StateMachine")
+	bool bStartAtBeginPlay = true;
 
 	UPROPERTY(Transient, BlueprintGetter=GetCurrentState)
 	UStateMachineState* CurrentState;
