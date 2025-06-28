@@ -16,6 +16,15 @@ UStateMachineState* UStateMachineComponent::GetCurrentState() const
 	return CurrentState;
 }
 
+void UStateMachineComponent::ResetStateMachine()
+{
+	if (CurrentState)
+		CurrentState->ExitingState(this);
+
+	CurrentState = nullptr;
+	EvaluateNextState();
+}
+
 void UStateMachineComponent::EvaluateNextState()
 {
 	if (!StateMachine)

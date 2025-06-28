@@ -22,6 +22,8 @@ public:
 	UStateMachineState* GetCurrentState() const;
 
 	UFUNCTION(BlueprintCallable, Category = "StateMachine")
+	void ResetStateMachine();
+	UFUNCTION(BlueprintCallable, Category = "StateMachine")
 	void EvaluateNextState();
 	UFUNCTION(BlueprintCallable, Category = "StateMachine")
 	void ExecuteTasksForCurrentState();
